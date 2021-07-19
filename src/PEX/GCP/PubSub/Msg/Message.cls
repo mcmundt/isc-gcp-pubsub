@@ -1,4 +1,4 @@
-Class Example.PEX.GCP.PubSub.Msg.Message Extends (%Persistent, %XML.Adaptor)
+Class PEX.GCP.PubSub.Msg.Message Extends (%Persistent, %XML.Adaptor)
 {
 
 Property MessageID As %String(MAXLEN = 512);
