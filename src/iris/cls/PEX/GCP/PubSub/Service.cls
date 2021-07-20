@@ -5,7 +5,7 @@
 /// <li><u>GCPProjectID</u><br/>The GCP project that the subscription belongs to<br/><br/></li>
 /// <li><u>GCPSubscriptionID</u><br/>The GCP ID for the subscription to receive messages for<br/><br/></li>
 /// <li><u>GCPTopicEncoding</u><br/>The encoding type for messages in this topic. This should be JSON (default) or BINARY. JSON data will be UTF-8 encoded<br/><br/></li>
-/// <li><u>MessageClass</u><br/>The fully qualified name of the IRIS message class that should be sent to OnProcessInput. Unless a custom message type is needed, use Example.PEX.GCP.PubSub.Msg.Message<br/><br/></li>
+/// <li><u>MessageClass</u><br/>The fully qualified name of the IRIS message class that should be sent to OnProcessInput. Unless a custom message type is needed, use PEX.GCP.PubSub.Msg.Message<br/><br/></li>
 /// <li><u>InternalQueueSize</u><br/>The maximum size of the internal message queue. Defaults to 1000</li>
 /// </ul>
 /// See PEX documentation for more information about the Remote Settings field.
