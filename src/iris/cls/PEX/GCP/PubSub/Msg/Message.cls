@@ -5,6 +5,8 @@ Property MessageID As %String(MAXLEN = 512);
 
 Property PublishTime As %String(MAXLEN = 64);
 
+Property OrderingKey As %String(MAXLEN = 512);
+
 Property StringData As %Stream.GlobalCharacter;
 
 Property BinaryData As %Stream.GlobalBinary;
