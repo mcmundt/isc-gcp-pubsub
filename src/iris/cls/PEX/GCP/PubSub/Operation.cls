@@ -7,7 +7,7 @@ Property Adapter As EnsLib.PEX.OutboundAdapter;
 
 Parameter INVOCATION = "Queue";
 
-Method PublishMessage(pRequest As Example.PEX.GCP.PubSub.Msg.Message, Output pResponse As Example.PEX.GCP.PubSub.Msg.PublishResponse) As %Status
+Method PublishMessage(pRequest As PEX.GCP.PubSub.Msg.Message, Output pResponse As PEX.GCP.PubSub.Msg.PublishResponse) As %Status
 {
 	set pResponse=..Adapter.%DispatchMethod("OnMessage",pRequest)
 	Quit $$$OK
@@ -16,7 +16,7 @@ Method PublishMessage(pRequest As Example.PEX.GCP.PubSub.Msg.Message, Output pRe
 XData MessageMap
 {
 <MapItems>
-	<MapItem MessageType="Example.PEX.GCP.PubSub.Msg.Message"> 
+	<MapItem MessageType="PEX.GCP.PubSub.Msg.Message"> 
 		<Method>PublishMessage</Method>
 	</MapItem>
 </MapItems>
