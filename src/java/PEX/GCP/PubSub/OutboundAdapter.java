@@ -21,7 +21,6 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 	public String GCPCredentials = "";
 	public String GCPProjectID = "";
 	public String GCPTopicID = "";
-	public String GCPTopicEncoding = "";
 	
 	private Publisher publisher = null;
 	private IRIS iris;
@@ -40,7 +39,6 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		LogMessage(Level.DEBUG,"OnInit","	GCPProjectID: [" + GCPProjectID + "]");
 		LogMessage(Level.DEBUG,"OnInit","	GCPTopicID: [" + GCPTopicID + "]");
 		LogMessage(Level.DEBUG,"OnInit","	GCPCredentials: [" + GCPCredentials + "]");
-		LogMessage(Level.DEBUG,"OnInit","	GCPTopicEncoding: [" + GCPTopicEncoding + "]");
 		
 		iris = GatewayContext.getIRIS();
 		
@@ -107,6 +105,11 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 			msgBuilder=msgBuilder.putAllAttributes(attrMap);
 		}
 
+		String orderingKey=msgObj.getString("OrderingKey");
+		if (orderingKey != null && orderingKey.length() > 0) {
+			msgBuilder=msgBuilder.setOrderingKey(orderingKey);
+		}
+		
 		LogMessage(Level.DEBUG,"OnMessage","create message");
 
 		PubsubMessage pubsubMessage = msgBuilder.build();
@@ -118,7 +121,7 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		LogMessage(Level.DEBUG,"OnMessage","published message " + messageId);
 		
 		// Return record info
-	    IRISObject pubResp = (IRISObject)(iris.classMethodObject("Example.PEX.GCP.PubSub.Msg.PublishResponse","%New",messageId));
+	    IRISObject pubResp = (IRISObject)(iris.classMethodObject("PEX.GCP.PubSub.Msg.PublishResponse","%New",messageId));
 
 		LogMessage(Level.DEBUG,"OnMessage","leaving");
 	    return pubResp;
