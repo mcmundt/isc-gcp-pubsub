@@ -42,7 +42,7 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 	private enum Level {
 		OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 	}
-	
+		
 	public void OnInit() throws Exception {
 		InitializeLogging();
 		
@@ -109,15 +109,19 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 		while (true) {
 			MessageWrapper wrapper=messages.poll(200,TimeUnit.MILLISECONDS);
 		    
-		    if (wrapper == null) {
-		    	break;
-		    }
+		    	if (wrapper == null) {
+		    		break;
+		    	}
 		    
 			LogMessage(Level.INFO, "OnTask", "pulled message from queue");
 		    
 			IRISObject msgObj = (IRISObject)(iris.classMethodObject(MessageClass,"%New"));
 			msgObj.set("IsBinary", isBinary);			
 			msgObj.set("MessageID", wrapper.message.getMessageId());
+			
+			if (wrapper.message.getOrderingKey() != null && wrapper.message.getOrderingKey().length() > 0) {
+				msgObj.set("OrderingKey", wrapper.message.getOrderingKey());
+			}
 			
 			LocalDateTime publishTime = LocalDateTime.ofEpochSecond(wrapper.message.getPublishTime().getSeconds(), wrapper.message.getPublishTime().getNanos(), ZoneOffset.ofHours(0));
 			msgObj.set("PublishTime",publishTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
