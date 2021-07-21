@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
+
 import com.intersystems.gateway.GatewayContext;
 import com.intersystems.jdbc.IRIS;
 import com.intersystems.jdbc.IRISObject;
@@ -24,9 +25,10 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 	
 	private Publisher publisher = null;
 	private IRIS iris;
-	private static int chunkSize = 3 * 1024 * 1024;
 	private Level LogLevelInt = Level.OFF;
-	
+
+	private static int chunkSize = 3 * 1024 * 1024;
+
 	private enum Level {
 		OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 	}	
@@ -39,6 +41,7 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		LogMessage(Level.DEBUG,"OnInit","	GCPProjectID: [" + GCPProjectID + "]");
 		LogMessage(Level.DEBUG,"OnInit","	GCPTopicID: [" + GCPTopicID + "]");
 		LogMessage(Level.DEBUG,"OnInit","	GCPCredentials: [" + GCPCredentials + "]");
+		LogMessage(Level.DEBUG, "OnInit", "	LogLevel: [" + LogLevel + "]");
 		
 		iris = GatewayContext.getIRIS();
 		
