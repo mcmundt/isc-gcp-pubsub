@@ -7,6 +7,15 @@ This project provides example interoperability components to receive
 messages from and publish messages to Google Cloud Provider (GCP) PubSub
 topics. It uses PEX and the GCP Java libraries to connect to GCP PubSub.
 
+For more information:
+
+IRIS PEX\
+<https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EPEX>
+
+GCP PubSub
+
+<https://cloud.google.com/pubsub/docs/overview>
+
 ## Components
 
 ### PEX.GCP.PubSub.InboundAdapter.java
