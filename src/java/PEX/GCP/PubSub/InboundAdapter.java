@@ -8,6 +8,7 @@ import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.common.collect.Lists;
 import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PubsubMessage;
+
 import com.intersystems.gateway.GatewayContext;
 import com.intersystems.jdbc.IRIS;
 import com.intersystems.jdbc.IRISObject;
@@ -25,7 +26,6 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 	Subscriber subscriber = null;
 	ArrayBlockingQueue<MessageWrapper> messages = null;
 
-	public String LogFile = "";
 	public String LogLevel = "";
 	public String GCPCredentials = "";
 	public String GCPProjectID = "";
@@ -35,9 +35,11 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 	public String InternalQueueSize = "";
 	
 	private IRIS iris;
-	private int chunkSize = 3 * 1024 * 1024;
 	private boolean isBinary = false;
 	private Level LogLevelInt = Level.OFF;
+
+	private static String DefaultMessageClass = "PEX.GCP.PubSub.Msg.Message";
+	private static int chunkSize = 3 * 1024 * 1024;
 	
 	private enum Level {
 		OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE
@@ -54,6 +56,7 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 		LogMessage(Level.DEBUG, "OnInit", "	GCPCredentials: [" + GCPCredentials + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	GCPTopicEncoding: [" + GCPTopicEncoding + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	MessageClass: [" + MessageClass + "]");
+		LogMessage(Level.DEBUG, "OnInit", "	LogLevel: [" + LogLevel + "]");
 
 		iris = GatewayContext.getIRIS();
 
@@ -64,24 +67,30 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 			internalQueueSize=1000;
 			LogMessage(Level.INFO, "OnInit", "No setting for InternalQueueSize, defaulting to 1000");
 		}
-		messages = new ArrayBlockingQueue<MessageWrapper>(internalQueueSize);
+		messages = new ArrayBlockingQueue<MessageWrapper>(internalQueueSize);	
 		
-	    CredentialsProvider credProv = () -> {
-	    	ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.getBytes("UTF-8"));
-	        GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-	    	return credentials;
-	    };
-	
-		ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(GCPProjectID, GCPSubscriptionID);
-		
-		if (GCPTopicEncoding.trim().equalsIgnoreCase("BINARY")) {
+		if (GCPTopicEncoding != null && GCPTopicEncoding.trim().equalsIgnoreCase("BINARY")) {
 			isBinary = true;
 			LogMessage(Level.INFO, "OnInit", "using BINARY encoding");
 		} else {
 			LogMessage(Level.INFO, "OnInit", "using JSON encoding");
 		}
-		
+
+		if (MessageClass != null && MessageClass.trim().length() > 0) {
+			MessageClass = MessageClass.trim();
+		} else {
+			MessageClass = DefaultMessageClass;
+		}
+
 	    LogMessage(Level.INFO, "OnInit", "setting up receiver and subscription");
+	
+	    CredentialsProvider credProv = () -> {
+	    	ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.trim().getBytes("UTF-8"));
+	        GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+	    	return credentials;
+	    };
+	    
+	    ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(GCPProjectID.trim(), GCPSubscriptionID.trim());	    
 	    
 	    MessageReceiver receiver =
     		new MessageReceiver() {
@@ -109,9 +118,9 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 		while (true) {
 			MessageWrapper wrapper=messages.poll(200,TimeUnit.MILLISECONDS);
 		    
-		    	if (wrapper == null) {
-		    		break;
-		    	}
+		    if (wrapper == null) {
+		    	break;
+		    }
 		    
 			LogMessage(Level.INFO, "OnTask", "pulled message from queue");
 		    
