@@ -12,6 +12,8 @@ For more information:
 IRIS PEX\
 <https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EPEX>
 
+<https://learning.intersystems.com/course/view.php?id=1716>
+
 GCP PubSub
 
 <https://cloud.google.com/pubsub/docs/overview>
