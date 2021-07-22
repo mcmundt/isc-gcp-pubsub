@@ -66,10 +66,12 @@ Encoding of BINARY in the GCP Topic configuration.
 
 ### Preparation
 
-1.  Import the included ObjectScript classes into the namespace
+1.  Download the "deployment" folder from GitHub
+
+2.  Import the included ObjectScript classes into the namespace
     containing the interoperability production
 
-2.  Copy the included Java JAR files to the server: GCPPubSub.jar and
+3.  Copy the included Java JAR files to the server: GCPPubSub.jar and
     the libraries folder
 
 ###  Adding a Business Service to the Production
