@@ -64,22 +64,6 @@ GCPTopicEncoding. When sending a message to the OutboundAdapter, set
 this to true (1) when sending to topics that are configured with an
 Encoding of BINARY in the GCP Topic configuration.
 
-To send a message to a GCP PubSub topic:
-
--   Construct a PEX.GCP.PubSub.Msg.Message
-
--   Set IsBinary to 1 for binary content or leave it at the default of 0
-    for JSON or text
-
--   Populate the data stream using GetDataStream().Write() or another
-    stream method
-
--   Populate attributes
-
--   Populate OrderingKey if needed
-
--   Send the message to the GCP PubSub Business Operation
-
 ## Making use of the components
 
 ### Preparation
@@ -150,3 +134,19 @@ To send a message to a GCP PubSub topic:
 
 A GCP PEX Business Operation is configured similarly to a Business
 Service.
+
+### Sending a message to a GCP PubSub topic
+
+-   Construct a PEX.GCP.PubSub.Msg.Message
+
+-   Set IsBinary to 1 for binary content or leave it at the default of 0
+    for JSON or text
+
+-   Populate the data stream using GetDataStream().Write() or another
+    stream method
+
+-   Populate attributes
+
+-   Populate OrderingKey if needed
+
+-   Send the message to the GCP PubSub Business Operation
