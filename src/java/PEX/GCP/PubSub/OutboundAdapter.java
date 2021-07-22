@@ -40,18 +40,18 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		LogMessage(Level.DEBUG,"OnInit","starting with config values:");
 		LogMessage(Level.DEBUG,"OnInit","	GCPProjectID: [" + GCPProjectID + "]");
 		LogMessage(Level.DEBUG,"OnInit","	GCPTopicID: [" + GCPTopicID + "]");
-		LogMessage(Level.DEBUG,"OnInit","	GCPCredentials: [" + GCPCredentials + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	LogLevel: [" + LogLevel + "]");
 		
 		iris = GatewayContext.getIRIS();
-		
-		CredentialsProvider credProv = () -> {
-	    	ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.getBytes("UTF-8"));
-	        GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-	    	return credentials;
-	    };
 
 	    LogMessage(Level.INFO,"OnInit","setting up publisher");
+
+	    CredentialsProvider credProv = () -> {
+		    	ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.getBytes("UTF-8"));
+		        GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+		    	return credentials;
+		    };
+
 	    TopicName topicName = TopicName.of(GCPProjectID.trim(), GCPTopicID.trim());
 	    publisher = Publisher.newBuilder(topicName).setCredentialsProvider(credProv).build();
 
@@ -61,27 +61,30 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 	public Object OnMessage(Object msgReq) throws Exception {
 		LogMessage(Level.DEBUG,"OnMessage","entering");
 
+		LogMessage(Level.INFO,"OnMessage","received message");
+
 		IRISObject msgObj = (IRISObject) msgReq;
 		boolean isBinary = msgObj.getBoolean("IsBinary");
 				
 		IRISObject strmObj = (IRISObject)msgObj.invokeObject("GetDataStream");
 		Long strmSize=strmObj.getLong("Size");
+		LogMessage(Level.DEBUG,"OnMessage","data stream size: " + strmSize);
 				
 		ByteString msgData = ByteString.EMPTY;
-		int bytesCopied = 0;
+		int numCopied = 0;
 
-		while (bytesCopied < strmSize) {						
+		while (numCopied < strmSize) {						
 			if (isBinary) {
 				byte[] msgChunk=strmObj.invokeBytes("Read",chunkSize);
 				msgData = msgData.concat(ByteString.copyFrom(msgChunk));				
-				LogMessage(Level.DEBUG,"OnMessage","copying chunk " + bytesCopied + "-" + (bytesCopied + msgChunk.length));
-				bytesCopied += msgChunk.length;
+				LogMessage(Level.DEBUG,"OnMessage","copying chunk " + numCopied + "-" + (numCopied + msgChunk.length));
+				numCopied += msgChunk.length;
 			} else {
 				String msgChunk=strmObj.invokeString("Read", chunkSize);
 				msgData = msgData.concat(ByteString.copyFromUtf8(msgChunk));
-				LogMessage(Level.DEBUG,"OnMessage","copying chunk " + bytesCopied + "-" + (bytesCopied + msgChunk.length()));
+				LogMessage(Level.DEBUG,"OnMessage","copying chunk " + numCopied + "-" + (numCopied + msgChunk.length()));
 				LogMessage(Level.DEBUG,"OnMessage","msgData size: " + msgData.size());
-				bytesCopied += msgChunk.length();
+				numCopied += msgChunk.length();
 			}
 		}
 
@@ -121,7 +124,7 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		LogMessage(Level.DEBUG,"OnMessage","publish message");
 		ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
 		String messageId = messageIdFuture.get();
-		LogMessage(Level.DEBUG,"OnMessage","published message " + messageId);
+		LogMessage(Level.INFO,"OnMessage","published message " + messageId);
 		
 		// Return record info
 	    IRISObject pubResp = (IRISObject)(iris.classMethodObject("PEX.GCP.PubSub.Msg.PublishResponse","%New",messageId));
@@ -136,7 +139,7 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		publisher.shutdown();
 		LogMessage(Level.INFO,"OnTearDown","wait for publisher to terminate");
 		publisher.awaitTermination(60, TimeUnit.SECONDS);
-		LogMessage(Level.TRACE,"OnTearDown","after publisher termination or timeout");
+		LogMessage(Level.INFO,"OnTearDown","publisher terminated or timed out");
 		LogMessage(Level.DEBUG,"OnTearDown","leaving");
 	}
 	
