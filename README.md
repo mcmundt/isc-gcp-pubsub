@@ -68,13 +68,15 @@ Encoding of BINARY in the GCP Topic configuration.
 
 ### Preparation
 
-1.  Download the "deployment" folder from GitHub
+1.  This currently works with IRIS 2020.1 and greater
 
-2.  Import the included ObjectScript classes from classes.xml in the
+2.  Download the "deployment" folder from GitHub
+
+3.  Import the included ObjectScript classes from classes.xml in the
     "objectscript" subfolder into the namespace containing the
     interoperability production
 
-3.  Copy the included Java JAR files from the "jar" subfolder to the
+4.  Copy the included Java JAR files from the "jar" subfolder to the
     server: GCPPubSub.jar and the libraries folder
 
 ###  Adding a Business Service to the Production
