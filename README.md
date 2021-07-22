@@ -1,5 +1,7 @@
 # isc-gcp-pubsub
-Interoperability components for receiving or publishing Google Cloud Platform PubSub messages
+
+Interoperability components for receiving or publishing Google Cloud
+Platform PubSub messages
 
 ## Overview
 
@@ -22,7 +24,7 @@ GCP PubSub
 
 #### PEX.GCP.PubSub.InboundAdapter.java
 
-Inbound adapter for the IRIS business service
+Java PEX Inbound Adapter for the IRIS business service
 PEX.GCP.PubSub.Service.cls. Receives messages for a GCP PubSub
 subscription using GCP Java libraries and sends them to the Business
 Service's OnProcessInput() method as a PEX.GCP.PubSub.Msg.Message.
@@ -35,7 +37,7 @@ more other IRIS Business Hosts.
 
 #### PEX.GCP.PubSub.OutboundAdapter.java
 
-Outbound adapter for the IRIS business operation
+Java PEX Outbound Adapter for the IRIS business operation
 PEX.GCP.PubSub.Operation. Receives PEX.GCP.PubSub.Msg.Message messages
 from other business hosts in IRIS and uses GCP Java libraries to publish
 them to a GCP PubSub topic.
@@ -54,13 +56,29 @@ IRIS message class for GCP PubSub messages. Message data is stored in
 one of two %Stream properties (depending on message encoding) -- use
 GetDataStream() to retrieve the appropriate stream. See GCP PubSub
 documentation for more information about Attributes, OrderingKey,
-PublishTime, and MessageID.\
-\
+PublishTime, and MessageID.
+
 IsBinary indicates if message is encoded as text or binary. The
 InboundAdapter will set IsBinary based on the Remote Setting
 GCPTopicEncoding. When sending a message to the OutboundAdapter, set
 this to true (1) when sending to topics that are configured with an
 Encoding of BINARY in the GCP Topic configuration.
+
+To send a message to a GCP PubSub topic:
+
+-   Construct a PEX.GCP.PubSub.Msg.Message
+
+-   Set IsBinary to 1 for binary content or leave it at the default of 0
+    for JSON or text
+
+-   Populate the data stream using GetDataStream().Write() or another
+    stream method
+
+-   Populate attributes
+
+-   Populate OrderingKey if needed
+
+-   Send the message to the GCP PubSub Business Operation
 
 ## Making use of the components
 
@@ -132,5 +150,3 @@ Encoding of BINARY in the GCP Topic configuration.
 
 A GCP PEX Business Operation is configured similarly to a Business
 Service.
-
-
