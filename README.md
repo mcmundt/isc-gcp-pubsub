@@ -20,27 +20,27 @@ GCP PubSub
 
 ## Components
 
-[PEX.GCP.PubSub.InboundAdapter.java]{.ul}
+#### PEX.GCP.PubSub.InboundAdapter.java
 
 Inbound adapter for the IRIS business service
 PEX.GCP.PubSub.Service.cls. Receives messages for a GCP PubSub
 subscription using GCP Java libraries and sends them to the Business
 Service's OnProcessInput() method as a PEX.GCP.PubSub.Msg.Message.
 
-[PEX.GCP.PubSub.Service.cls]{.ul}
+#### PEX.GCP.PubSub.Service.cls
 
 IRIS business service. Receives and processes PEX.GCP.PubSub.Msg.Message
 messages from PEX.GCP.PubSub.InboundAdapter and sends them to one or
 more other IRIS Business Hosts.
 
-[PEX.GCP.PubSub.OutboundAdapter.java]{.ul}
+#### PEX.GCP.PubSub.OutboundAdapter.java
 
 Outbound adapter for the IRIS business operation
 PEX.GCP.PubSub.Operation. Receives PEX.GCP.PubSub.Msg.Message messages
 from other business hosts in IRIS and uses GCP Java libraries to publish
 them to a GCP PubSub topic.
 
-[PEX.GCP.PubSub.Operation.cls]{.ul}
+#### PEX.GCP.PubSub.Operation.cls
 
 IRIS business operation. Receives PEX.GCP.PubSub.Msg.Message messages
 from other IRIS Business Hosts and sends them to
@@ -48,7 +48,7 @@ PEX.GCP.PubSub.OutboundAdapter for publishing to a GCP PubSub topic. The
 operation will return a PEX.GCP.Msg.PublishResponse containing the
 message ID assigned by GCP PubSub.
 
-[PEX.GCP.PubSub.Msg.Message.cls]{.ul}
+#### PEX.GCP.PubSub.Msg.Message.cls
 
 IRIS message class for GCP PubSub messages. Message data is stored in
 one of two %Stream properties (depending on message encoding) -- use
@@ -132,4 +132,5 @@ Encoding of BINARY in the GCP Topic configuration.
 
 A GCP PEX Business Operation is configured similarly to a Business
 Service.
+
 
