@@ -53,7 +53,6 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 		LogMessage(Level.DEBUG, "OnInit", "	InternalQueueSize: [" + InternalQueueSize + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	GCPProjectID: [" + GCPProjectID + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	GCPSubscriptionID: [" + GCPSubscriptionID + "]");
-		LogMessage(Level.DEBUG, "OnInit", "	GCPCredentials: [" + GCPCredentials + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	GCPTopicEncoding: [" + GCPTopicEncoding + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	MessageClass: [" + MessageClass + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	LogLevel: [" + LogLevel + "]");
@@ -185,7 +184,7 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 			}
 		
 			LogMessage(Level.TRACE, "OnTask", "before processinput");
-			LogMessage(Level.INFO, "OnTask", "calling ProcessInput()");
+			LogMessage(Level.DEBUG, "OnTask", "calling ProcessInput()");
 	    	BusinessHost.ProcessInput(msgObj);
 			LogMessage(Level.TRACE, "OnTask", "after processinput");
 
