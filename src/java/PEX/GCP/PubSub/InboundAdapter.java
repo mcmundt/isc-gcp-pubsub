@@ -80,32 +80,31 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 		} else {
 			MessageClass = DefaultMessageClass;
 		}
-
-	    LogMessage(Level.INFO, "OnInit", "setting up receiver and subscription");
-	
-	    CredentialsProvider credProv = () -> {
-	    	ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.trim().getBytes("UTF-8"));
-	        GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-	    	return credentials;
-	    };
-	    
-	    ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(GCPProjectID.trim(), GCPSubscriptionID.trim());	    
-	    
-	    MessageReceiver receiver =
-    		new MessageReceiver() {
-    	       public void receiveMessage(final PubsubMessage message, final AckReplyConsumer consumer) {
-			       MessageWrapper wrapper = new MessageWrapper();
-			       wrapper.message=message;
-			       wrapper.consumer=consumer;
-			       
-			       messages.offer(wrapper); 
-    	       }
-	    };
-
-	    // Start the subscriber
+		
+		LogMessage(Level.INFO, "OnInit", "setting up receiver and subscription");
+		
+		CredentialsProvider credProv = () -> {
+			ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.trim().getBytes("UTF-8"));
+			GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+			return credentials;
+		};
+		
+		ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(GCPProjectID.trim(), GCPSubscriptionID.trim());		
+		
+		MessageReceiver receiver = new MessageReceiver() {
+				public void receiveMessage(final PubsubMessage message, final AckReplyConsumer consumer) {
+					MessageWrapper wrapper = new MessageWrapper();
+					wrapper.message=message;
+					wrapper.consumer=consumer;
+						   
+					messages.offer(wrapper); 
+				}
+		};
+		
+		// Start the subscriber
 		subscriber = Subscriber.newBuilder(subscriptionName, receiver).setCredentialsProvider(credProv).build();
-	    subscriber.startAsync().awaitRunning();
-	    LogMessage(Level.INFO, "OnInit", "listening for messages on " + subscriptionName.toString());
+		subscriber.startAsync().awaitRunning();
+		LogMessage(Level.INFO, "OnInit", "listening for messages on " + subscriptionName.toString());
 		LogMessage(Level.DEBUG, "OnInit", "leaving");
 
 	}
@@ -113,16 +112,16 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 	@Override
 	public void OnTask() throws Exception {		
 		LogMessage(Level.DEBUG, "OnInit", "entering");
-	    
+		
 		while (true) {
 			MessageWrapper wrapper=messages.poll(200,TimeUnit.MILLISECONDS);
-		    
-		    if (wrapper == null) {
-		    	break;
-		    }
-		    
+
+			if (wrapper == null) {
+				break;
+			}
+			
 			LogMessage(Level.INFO, "OnTask", "pulled message from queue");
-		    
+			
 			IRISObject msgObj = (IRISObject)(iris.classMethodObject(MessageClass,"%New"));
 			msgObj.set("IsBinary", isBinary);			
 			msgObj.set("MessageID", wrapper.message.getMessageId());
@@ -138,11 +137,11 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 			if (attMap.size() > 0) {
 				LogMessage(Level.DEBUG, "OnTask", "copying attributes");
 				IRISObject attrArrObj = (IRISObject)msgObj.getObject("Attributes");
-		        attMap.forEach(new BiConsumer < String, String > () {
-		            public void accept(String k, String v) {
-		            	attrArrObj.invoke("SetAt", v, k);
-		            }
-		        });		
+				attMap.forEach(new BiConsumer < String, String > () {
+					public void accept(String k, String v) {
+						attrArrObj.invoke("SetAt", v, k);
+					}
+				});
 			}
 			
 			IRISObject strmObj = (IRISObject)msgObj.invokeObject("GetDataStream");
@@ -160,12 +159,12 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 					byte[] msgChunk = wrapper.message.getData().substring(writeCount, lastByte).toByteArray();
 
 					LogMessage(Level.DEBUG, "OnTask", "inserting bytes " + writeCount + "-" + lastByte);
-	
+
 					strmObj.invoke("Write", msgChunk);
-					writeCount += msgChunk.length;					
+					writeCount += msgChunk.length;
 
 					LogMessage(Level.TRACE, "OnTask", "after stream Write()");
-			    }
+				}
 			} else {
 				String msgData=wrapper.message.getData().toStringUtf8();
 				while (writeCount < msgData.length()) {
@@ -185,13 +184,13 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 		
 			LogMessage(Level.TRACE, "OnTask", "before processinput");
 			LogMessage(Level.DEBUG, "OnTask", "calling ProcessInput()");
-	    	BusinessHost.ProcessInput(msgObj);
+			BusinessHost.ProcessInput(msgObj);
 			LogMessage(Level.TRACE, "OnTask", "after processinput");
 
 			// Don't send an ack to GCP until the message has reached the business service
-     	   	wrapper.consumer.ack();
-	    	LogMessage(Level.INFO, "OnTask", "acked msg id: " + wrapper.message.getMessageId());	    	
-		}		
+			wrapper.consumer.ack();
+			LogMessage(Level.INFO, "OnTask", "acked msg id: " + wrapper.message.getMessageId());
+		}
 		LogMessage(Level.DEBUG, "OnTask", "leaving");
 	}
 
@@ -200,59 +199,59 @@ public class InboundAdapter extends com.intersystems.enslib.pex.InboundAdapter{
 			message = "[" + level + "]	" + "[" + method + "]	" + message;
 			
 			switch (level) {
-		        case OFF:
-		        		break;
-		        case FATAL:	
-		        		 BusinessHost.LOGERROR(message);
-		                 break;
-		        case ERROR:	
-		        		 BusinessHost.LOGERROR(message);
-		                 break;
-		        case WARN:	
-		        		 BusinessHost.LOGWARNING(message);
-		                 break;
-		        case INFO:	
-		        		 BusinessHost.LOGINFO(message);
-		                 break;
-		        case DEBUG:	
-		        		 BusinessHost.LOGINFO(message);
-		                 break;
-		        case TRACE:	
-		        		 BusinessHost.LOGINFO(message);
-		                 break;
+				case OFF:
+						break;
+				case FATAL:	
+						 BusinessHost.LOGERROR(message);
+						 break;
+				case ERROR:	
+						 BusinessHost.LOGERROR(message);
+						 break;
+				case WARN:	
+						 BusinessHost.LOGWARNING(message);
+						 break;
+				case INFO:	
+						 BusinessHost.LOGINFO(message);
+						 break;
+				case DEBUG:	
+						 BusinessHost.LOGINFO(message);
+						 break;
+				case TRACE:	
+						 BusinessHost.LOGINFO(message);
+						 break;
 			}
 		}		
 	}
-	
+
 	private void InitializeLogging() {
 		switch (LogLevel.trim().toUpperCase()) {
-	        case "OFF":  LogLevelInt = Level.OFF;
-	                 break;
-	        case "FATAL":  LogLevelInt = Level.FATAL;
-	                 break;
-	        case "ERROR":  LogLevelInt = Level.ERROR;
-	                 break;
-	        case "WARN":  LogLevelInt = Level.WARN;
-	                 break;
-	        case "INFO":  LogLevelInt = Level.INFO;
-	                 break;
-	        case "DEBUG":  LogLevelInt = Level.DEBUG;
-	                 break;
-	        case "TRACE":  LogLevelInt = Level.TRACE;
-	                 break;
-	        default: LogLevelInt = Level.INFO;
-	                 break;
+			case "OFF":  LogLevelInt = Level.OFF;
+					 break;
+			case "FATAL":  LogLevelInt = Level.FATAL;
+					 break;
+			case "ERROR":  LogLevelInt = Level.ERROR;
+					 break;
+			case "WARN":  LogLevelInt = Level.WARN;
+					 break;
+			case "INFO":  LogLevelInt = Level.INFO;
+					 break;
+			case "DEBUG":  LogLevelInt = Level.DEBUG;
+					 break;
+			case "TRACE":  LogLevelInt = Level.TRACE;
+					 break;
+			default: LogLevelInt = Level.INFO;
+					 break;
 		}
 	}
-	
+
 	public void OnTearDown() throws Exception {
 		LogMessage(Level.DEBUG, "OnTearDown", "entering");
 		LogMessage(Level.INFO, "OnTearDown", "stopping subscriber");
-		subscriber.stopAsync();		
+		subscriber.stopAsync();
 		LogMessage(Level.TRACE, "OnTearDown", "after stopAsync");
 		LogMessage(Level.DEBUG, "OnTearDown", "leaving");
 	}
-	
+
 	private class MessageWrapper {
 		PubsubMessage message = null;
 		AckReplyConsumer consumer = null;
