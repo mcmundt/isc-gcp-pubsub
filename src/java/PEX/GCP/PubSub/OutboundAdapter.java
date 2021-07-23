@@ -22,7 +22,7 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 	public String GCPCredentials = "";
 	public String GCPProjectID = "";
 	public String GCPTopicID = "";
-	
+
 	private Publisher publisher = null;
 	private IRIS iris;
 	private Level LogLevelInt = Level.OFF;
@@ -32,7 +32,7 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 	private enum Level {
 		OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 	}	
-	
+
 	public void OnInit() throws Exception {
 		InitializeLogging();
 		
@@ -41,20 +41,20 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		LogMessage(Level.DEBUG,"OnInit","	GCPProjectID: [" + GCPProjectID + "]");
 		LogMessage(Level.DEBUG,"OnInit","	GCPTopicID: [" + GCPTopicID + "]");
 		LogMessage(Level.DEBUG, "OnInit", "	LogLevel: [" + LogLevel + "]");
-		
+
 		iris = GatewayContext.getIRIS();
 
-	    LogMessage(Level.INFO,"OnInit","setting up publisher");
+		LogMessage(Level.INFO,"OnInit","setting up publisher");
 
-	    CredentialsProvider credProv = () -> {
-		    	ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.getBytes("UTF-8"));
-		        GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-		    	return credentials;
-		    };
+		CredentialsProvider credProv = () -> {
+			ByteArrayInputStream credStream = new ByteArrayInputStream(GCPCredentials.getBytes("UTF-8"));
+			GoogleCredentials credentials = GoogleCredentials.fromStream(credStream).createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+			return credentials;
+		};
 
-	    TopicName topicName = TopicName.of(GCPProjectID.trim(), GCPTopicID.trim());
-	    publisher = Publisher.newBuilder(topicName).setCredentialsProvider(credProv).build();
-
+		TopicName topicName = TopicName.of(GCPProjectID.trim(), GCPTopicID.trim());
+		publisher = Publisher.newBuilder(topicName).setCredentialsProvider(credProv).build();
+		
 		LogMessage(Level.DEBUG,"OnInit","leaving");
 	}
 
@@ -65,18 +65,18 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 
 		IRISObject msgObj = (IRISObject) msgReq;
 		boolean isBinary = msgObj.getBoolean("IsBinary");
-				
+
 		IRISObject strmObj = (IRISObject)msgObj.invokeObject("GetDataStream");
 		Long strmSize=strmObj.getLong("Size");
 		LogMessage(Level.DEBUG,"OnMessage","data stream size: " + strmSize);
-				
+
 		ByteString msgData = ByteString.EMPTY;
 		int numCopied = 0;
 
-		while (numCopied < strmSize) {						
+		while (numCopied < strmSize) {
 			if (isBinary) {
 				byte[] msgChunk=strmObj.invokeBytes("Read",chunkSize);
-				msgData = msgData.concat(ByteString.copyFrom(msgChunk));				
+				msgData = msgData.concat(ByteString.copyFrom(msgChunk));
 				LogMessage(Level.DEBUG,"OnMessage","copying chunk " + numCopied + "-" + (numCopied + msgChunk.length));
 				numCopied += msgChunk.length;
 			} else {
@@ -89,25 +89,25 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		}
 
 		PubsubMessage.Builder msgBuilder = PubsubMessage.newBuilder().setData(msgData);
-		
+
 		IRISObject attrArrObj = (IRISObject)msgObj.getObject("Attributes");
 		if (attrArrObj.invokeLong("Count") > 0) {
 			LogMessage(Level.DEBUG,"OnMessage","copying attributes");
-			
+
 			HashMap<String,String> attrMap = new HashMap<String,String>();
 
 			String attrArrKey="";
 			attrArrKey=attrArrObj.invokeString("Next",attrArrKey);
-						
+
 			while (attrArrKey != null && attrArrKey.length() > 0) {
 				String attrArrVal=attrArrObj.invokeString("GetAt", attrArrKey);				
 				attrMap.put(attrArrKey, attrArrVal);
 
 				LogMessage(Level.TRACE,"OnMessage","	" + attrArrKey + "=" + attrArrVal);
-				
+
 				attrArrKey=attrArrObj.invokeString("Next",attrArrKey);	
 			}
-			
+
 			msgBuilder=msgBuilder.putAllAttributes(attrMap);
 		}
 
@@ -115,7 +115,7 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		if (orderingKey != null && orderingKey.length() > 0) {
 			msgBuilder=msgBuilder.setOrderingKey(orderingKey);
 		}
-		
+
 		LogMessage(Level.DEBUG,"OnMessage","create message");
 
 		PubsubMessage pubsubMessage = msgBuilder.build();
@@ -125,14 +125,14 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
 		String messageId = messageIdFuture.get();
 		LogMessage(Level.INFO,"OnMessage","published message " + messageId);
-		
+
 		// Return record info
-	    IRISObject pubResp = (IRISObject)(iris.classMethodObject("PEX.GCP.PubSub.Msg.PublishResponse","%New",messageId));
+		IRISObject pubResp = (IRISObject)(iris.classMethodObject("PEX.GCP.PubSub.Msg.PublishResponse","%New",messageId));
 
 		LogMessage(Level.DEBUG,"OnMessage","leaving");
-	    return pubResp;
+		return pubResp;
 	}
-	
+
 	public void OnTearDown() throws Exception {
 		LogMessage(Level.DEBUG,"OnTearDown","entering");
 		LogMessage(Level.INFO,"OnTearDown","shutting down publisher");
@@ -142,54 +142,54 @@ public class OutboundAdapter extends com.intersystems.enslib.pex.OutboundAdapter
 		LogMessage(Level.INFO,"OnTearDown","publisher terminated or timed out");
 		LogMessage(Level.DEBUG,"OnTearDown","leaving");
 	}
-	
+
 	private void LogMessage(Level level, String method, String message) {		
 		if (level.compareTo(LogLevelInt) <= 0) {
 			message = "[" + level + "]	" + "[" + method + "]	" + message;
 			
 			switch (level) {
-		        case OFF:
-		        		break;
-		        case FATAL:	
-		        		 BusinessHost.LOGERROR(message);
-		                 break;
-		        case ERROR:	
-		        		 BusinessHost.LOGERROR(message);
-		                 break;
-		        case WARN:	
-		        		 BusinessHost.LOGWARNING(message);
-		                 break;
-		        case INFO:	
-		        		 BusinessHost.LOGINFO(message);
-		                 break;
-		        case DEBUG:	
-		        		 BusinessHost.LOGINFO(message);
-		                 break;
-		        case TRACE:	
-		        		 BusinessHost.LOGINFO(message);
-		                 break;
+				case OFF:
+						break;
+				case FATAL:	
+						BusinessHost.LOGERROR(message);
+						break;
+				case ERROR:	
+						BusinessHost.LOGERROR(message);
+						break;
+				case WARN:	
+						BusinessHost.LOGWARNING(message);
+						break;
+				case INFO:	
+						BusinessHost.LOGINFO(message);
+						break;
+				case DEBUG:	
+						BusinessHost.LOGINFO(message);
+						break;
+				case TRACE:	
+						BusinessHost.LOGINFO(message);
+						break;
 			}
 		}		
 	}
 	
 	private void InitializeLogging() {
 		switch (LogLevel.trim().toUpperCase()) {
-	        case "OFF":  LogLevelInt = Level.OFF;
-	                 break;
-	        case "FATAL":  LogLevelInt = Level.FATAL;
-	                 break;
-	        case "ERROR":  LogLevelInt = Level.ERROR;
-	                 break;
-	        case "WARN":  LogLevelInt = Level.WARN;
-	                 break;
-	        case "INFO":  LogLevelInt = Level.INFO;
-	                 break;
-	        case "DEBUG":  LogLevelInt = Level.DEBUG;
-	                 break;
-	        case "TRACE":  LogLevelInt = Level.TRACE;
-	                 break;
-	        default: LogLevelInt = Level.INFO;
-	                 break;
+			case "OFF":  LogLevelInt = Level.OFF;
+					 break;
+			case "FATAL":  LogLevelInt = Level.FATAL;
+					 break;
+			case "ERROR":  LogLevelInt = Level.ERROR;
+					 break;
+			case "WARN":  LogLevelInt = Level.WARN;
+					 break;
+			case "INFO":  LogLevelInt = Level.INFO;
+					 break;
+			case "DEBUG":  LogLevelInt = Level.DEBUG;
+					 break;
+			case "TRACE":  LogLevelInt = Level.TRACE;
+					 break;
+			default: LogLevelInt = Level.INFO;
+					 break;
 		}
 	}	
 }
